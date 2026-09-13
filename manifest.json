@@ -1,0 +1,9 @@
+{
+	"id": "fg-story-exporter",
+	"name": "Fantasy Grounds Story Exporter",
+	"version": "0.1.0",
+	"minAppVersion": "1.4.0",
+	"description": "Export a folder of notes as a Fantasy Grounds Story library module.",
+	"author": "hannu@kuura.art",
+	"isDesktopOnly": true
+}

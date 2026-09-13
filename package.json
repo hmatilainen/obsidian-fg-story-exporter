@@ -1,0 +1,20 @@
+{
+	"name": "obsidian-fg-story-exporter",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"build": "node esbuild.config.mjs production",
+		"dev": "node esbuild.config.mjs",
+		"test": "vitest run"
+	},
+	"devDependencies": {
+		"@types/node": "^22.0.0",
+		"esbuild": "^0.24.0",
+		"obsidian": "^1.7.2",
+		"typescript": "^5.6.0",
+		"vitest": "^2.1.0"
+	},
+	"dependencies": {
+		"jszip": "^3.10.1"
+	}
+}

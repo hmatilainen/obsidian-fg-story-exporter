@@ -1,1 +1,5 @@
-node_modules/\ndist/\n*.mod\n.obsidian/
+node_modules/
+dist/
+*.mod
+.obsidian/
+main.js
