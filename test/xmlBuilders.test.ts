@@ -73,6 +73,42 @@ describe("buildDbXml", () => {
 		expect(xml).toContain("<recordname>reference.refmanualdata.id-00001</recordname>");
 		expect(xml).not.toContain("@");
 	});
+
+	it("separates order (local per subchapter) from dataKey (global) across subchapters", () => {
+		const treeWithMultipleSubchapters: BookTree = {
+			chapters: [
+				{
+					name: "Chapter One",
+					subchapters: [
+						{ name: "Sub A", pages: [{ relPath: "a1.md", title: "Page in Sub A" }] },
+						{ name: "Sub B", pages: [{ relPath: "b1.md", title: "Page in Sub B" }] },
+					],
+				},
+			],
+		};
+
+		const indexed = assignKeys(treeWithMultipleSubchapters);
+		const pagesContent = new Map(
+			indexed.pagesInOrder.map((p) => [
+				p.dataKey,
+				{ ...contentFor(p.dataKey), title: p.title },
+			])
+		);
+		const xml = buildDbXml(indexed, pagesContent);
+
+		// The second page globally should have dataKey id-00002 but order 1 (first in its subchapter)
+		const secondPage = indexed.pagesInOrder[1];
+		expect(secondPage.dataKey).toBe("id-00002");
+		expect(secondPage.order).toBe(1);
+
+		// Verify in the generated XML: the refpages entry for Sub B's page must show both:
+		// - order type="number">1</order> (position within Sub B)
+		// - recordname>reference.refmanualdata.id-00002</recordname> (global page ID)
+		expect(xml).toContain("<id-00002><name");
+		expect(xml).toContain(
+			"<order type=\"number\">1</order><listlink type=\"windowreference\"><class>story_book_page_advanced</class><recordname>reference.refmanualdata.id-00002</recordname>"
+		);
+	});
 });
 
 describe("buildDefinitionXml", () => {
