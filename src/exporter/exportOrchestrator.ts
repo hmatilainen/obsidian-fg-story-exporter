@@ -31,23 +31,31 @@ function collectImageEmbedTargets(blocks: ParsedBlock[]): string[] {
  * folder.
  */
 export async function exportFolder(app: App, folder: TFolder, settings: PluginSettings): Promise<ExportSummary> {
-	const noteFiles = app.vault
-		.getMarkdownFiles()
-		.filter((f) => f.path === folder.path || f.path.startsWith(folder.path + "/"))
-		.filter((f) => f.path.startsWith(folder.path + "/")); // exclude the folder note itself, if any, matching folder.path exactly
+	const pathPrefix = folder.path ? folder.path + "/" : "";
 
-	const relPathOf = (f: TFile) => f.path.slice(folder.path.length + 1);
+	const noteFiles = app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(pathPrefix));
 
-	// 1. Read every note's body and parse it (Obsidian strips frontmatter
-	// from cachedRead's raw content only via metadataCache, not the read
-	// itself, so we trim a leading "---...---" block ourselves).
+	const relPathOf = (f: TFile) => f.path.slice(pathPrefix.length);
+
+	// 1. Read every note's body and parse it. Frontmatter (if any) is
+	// stripped using Obsidian's own metadata cache boundary rather than a
+	// hand-rolled regex, so a leading Markdown horizontal rule ("---") is
+	// never mistaken for a frontmatter block.
 	const bodyByPath = new Map<string, string>();
 	const parsedByPath = new Map<string, ParsedBlock[]>();
 	let emptyNotesSkipped = 0;
 
 	for (const file of noteFiles) {
 		const raw = await app.vault.cachedRead(file);
-		const body = raw.replace(/^---\n[\s\S]*?\n---\n?/, "").trim();
+		const frontmatterPosition = app.metadataCache.getFileCache(file)?.frontmatterPosition;
+		let body: string;
+		if (frontmatterPosition) {
+			let start = frontmatterPosition.end.offset;
+			if (raw[start] === "\n") start += 1;
+			body = raw.slice(start).trim();
+		} else {
+			body = raw.trim();
+		}
 		if (body.length === 0) {
 			emptyNotesSkipped += 1;
 			continue;
@@ -85,7 +93,6 @@ export async function exportFolder(app: App, folder: TFolder, settings: PluginSe
 	const pagesContent = new Map<string, PageContent>();
 	let linksResolved = 0;
 	let linksDegraded = 0;
-	let imagesResolved = 0;
 	let imagesSkipped = 0;
 
 	for (const page of indexed.pagesInOrder) {
@@ -106,7 +113,6 @@ export async function exportFolder(app: App, folder: TFolder, settings: PluginSe
 		const { blocks: resolved, stats } = resolveBlocks(blocks, ctx);
 		linksResolved += stats.linksResolved;
 		linksDegraded += stats.linksDegraded;
-		imagesResolved += stats.imagesResolved;
 		imagesSkipped += stats.imagesSkipped;
 		pagesContent.set(page.dataKey, { dataKey: page.dataKey, title: page.title, blocks: resolved });
 	}
