@@ -17,9 +17,13 @@ Right-click any folder in Obsidian → select "Export to Fantasy Grounds" → th
 
 4. Click the plugin's settings icon and enter the path to your Fantasy Grounds `modules/` folder (e.g., `~/.smiteworks/fgdata/modules/`).
 
+   ![Plugin settings: Fantasy Grounds modules folder](docs/images/settings.png)
+
 ## Usage
 
 Right-click any folder in Obsidian's file tree → select "Export to Fantasy Grounds". The plugin creates (or overwrites) a `.mod` file named after the folder in your configured modules folder. Load the module in Fantasy Grounds by reloading or opening a campaign.
+
+![Folder context menu with "Export to Fantasy Grounds"](docs/images/export-to-fg.png)
 
 ## Markdown support
 
