@@ -211,7 +211,7 @@ Key findings this rests on:
 | `[[Other Note]]` (note is in this export) | `<link class="referencemanualpage" recordname="reference.refmanualdata.<key>">` |
 | `[[Other Note]]` (note is outside this export) | plain text, link syntax stripped; counted in the export summary |
 | `![[image.png]]` / `![](image.png)` (local file) | new `image` block, file copied into the module |
-| Anything else (tables, callouts, code blocks, footnotes, other plugins' syntax) | markup stripped, kept as plain text; counted as "simplified" in the summary — never aborts the export |
+| Anything else (tables, callouts, code blocks, footnotes, other plugins' syntax) | markup stripped, kept as plain text — never aborts the export. Not separately counted in the export summary in v1 (unlike degraded links/skipped images, which are); a future version could add that. |
 
 ## Identity: path-derived keys, no vault mutation
 
@@ -264,7 +264,7 @@ OS and install location; the user points it out once.
 | Empty note | Skipped; counted in the export summary |
 | Broken/missing local image embed | That image block skipped, warning logged, export continues |
 | `[[wikilink]]` to a note outside the exported folder | Degrades to plain text, counted in summary |
-| Unsupported Markdown syntax | Degrades to plain text, counted as "simplified" |
+| Unsupported Markdown syntax | Degrades to plain text. Not separately counted in v1's summary. |
 | Non-`.md`, non-image file in the folder | Ignored |
 | Re-export of the same folder | Always overwrites `<FolderName>.mod` — this *is* the update mechanism |
 
