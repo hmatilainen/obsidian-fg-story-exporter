@@ -2,6 +2,9 @@
 	"name": "obsidian-fg-story-exporter",
 	"version": "0.1.0",
 	"private": true,
+	"engines": {
+		"node": ">=18"
+	},
 	"scripts": {
 		"build": "node esbuild.config.mjs production",
 		"dev": "node esbuild.config.mjs",

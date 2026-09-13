@@ -4,6 +4,12 @@
 
 Right-click any folder in Obsidian → select "Export to Fantasy Grounds" → that folder's notes are packaged into a Fantasy Grounds library module (`.mod` file) containing a Story book with chapters (folders), subchapters (subfolders), and pages (notes). Locally embedded images are packaged into the module and rendered as in-page picture blocks. [[Wikilinks]] between notes in the same export are resolved as cross-page links within the module. Re-exporting the same folder overwrites the module file in place — that's how you update it.
 
+## Requirements
+
+- **Obsidian:** 1.4.0 or newer (declared in `manifest.json`; this is a real floor, not a placeholder — the plugin relies on `frontmatterPosition` in Obsidian's metadata cache, added in that release). Obsidian auto-updates for virtually everyone, so this is unlikely to matter.
+- **Fantasy Grounds:** Fantasy Grounds **Unity** (not Classic). Verified against a real install running v5.1.13; the `.mod` file format targeted (`db.xml` v5.1, `definition.xml` v2.9) matches modern FGU builds. Untested on older FGU versions.
+- **Building from source** (not needed if you install via BRAT or a release — those ship a prebuilt `main.js`): Node.js 18 or newer (required by esbuild and Vitest; tested on Node 22.22.1 / npm 10.9.4).
+
 ## Install
 
 1. Copy `manifest.json` and `main.js` (after building via `npm run build`) into:
