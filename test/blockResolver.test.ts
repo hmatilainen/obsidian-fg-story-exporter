@@ -61,6 +61,14 @@ describe("resolveBlocks", () => {
 		expect(out).toEqual([{ kind: "header", text: "A Heading" }]);
 	});
 
+	it("strips XML-illegal control characters from plain text", () => {
+		const blocks: ParsedBlock[] = [
+			{ kind: "text", lines: [{ kind: "paragraph", spans: [{ kind: "text", text: "a\x01b" }] }] },
+		];
+		const { blocks: out } = resolveBlocks(blocks, ctxNone);
+		expect(out).toEqual([{ kind: "singletext", xml: "<p>ab</p>" }]);
+	});
+
 	it("resolves a wikilink to a referencemanualpage link and counts it", () => {
 		const blocks: ParsedBlock[] = [
 			{ kind: "text", lines: [{ kind: "paragraph", spans: [{ kind: "wikilink", target: "Barkeep", label: "the barkeep" }] }] },

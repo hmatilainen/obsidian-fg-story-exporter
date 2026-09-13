@@ -66,6 +66,22 @@ describe("buildDbXml", () => {
 		expect(xml).toContain("<bitmap>images/img-00001.png</bitmap>");
 	});
 
+	it("emits an image block with a scale field of 60, matching the verified sample module", () => {
+		const indexed = assignKeys(tree);
+		const pagesContent = new Map(indexed.pagesInOrder.map((p) => [p.dataKey, contentFor(p.dataKey)]));
+		const xml = buildDbXml(indexed, pagesContent);
+		expect(xml).toContain('<scale type="number">60</scale>');
+	});
+
+	it("strips XML-illegal control characters from text content", () => {
+		const indexed = assignKeys(tree);
+		const pagesContent = new Map(
+			indexed.pagesInOrder.map((p) => [p.dataKey, { ...contentFor(p.dataKey), title: "a\x01b" }]),
+		);
+		const xml = buildDbXml(indexed, pagesContent);
+		expect(xml).toContain('<name type="string">ab</name>');
+	});
+
 	it("links each refpages entry to its page's dataKey with no @module suffix", () => {
 		const indexed = assignKeys(tree);
 		const pagesContent = new Map(indexed.pagesInOrder.map((p) => [p.dataKey, contentFor(p.dataKey)]));

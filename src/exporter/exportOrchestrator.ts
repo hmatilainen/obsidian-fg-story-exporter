@@ -30,8 +30,11 @@ function collectImageEmbedTargets(blocks: ParsedBlock[]): string[] {
  * `settings.modulesPath`, overwriting any previous export of this
  * folder.
  */
+const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "bmp"]);
+
 export async function exportFolder(app: App, folder: TFolder, settings: PluginSettings): Promise<ExportSummary> {
-	const pathPrefix = folder.path ? folder.path + "/" : "";
+	const pathPrefix = folder.isRoot() ? "" : folder.path + "/";
+	const moduleName = folder.isRoot() ? app.vault.getName() : folder.name;
 
 	const noteFiles = app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(pathPrefix));
 
@@ -66,7 +69,7 @@ export async function exportFolder(app: App, folder: TFolder, settings: PluginSe
 	}
 
 	// 2. Build the tree and assign page/chapter/subchapter keys.
-	const tree = buildBookTree(folder.name, Array.from(bodyByPath.keys()));
+	const tree = buildBookTree(moduleName, Array.from(bodyByPath.keys()));
 	const indexed = assignKeys(tree);
 
 	// 3. Walk pages in the same deterministic order to collect every
@@ -77,11 +80,12 @@ export async function exportFolder(app: App, folder: TFolder, settings: PluginSe
 
 	for (const page of indexed.pagesInOrder) {
 		const blocks = parsedByPath.get(page.relPath) ?? [];
-		const sourcePath = folder.path + "/" + page.relPath;
+		const sourcePath = pathPrefix + page.relPath;
 		for (const embedTarget of collectImageEmbedTargets(blocks)) {
-			const dest = app.metadataCache.getFirstLinkpathDest(embedTarget, sourcePath);
-			if (dest) {
-				imageFileByEmbed.set(page.relPath + "::" + embedTarget, dest);
+			const cleanTarget = embedTarget.split("|")[0];
+			const dest = app.metadataCache.getFirstLinkpathDest(cleanTarget, sourcePath);
+			if (dest && IMAGE_EXTENSIONS.has(dest.extension.toLowerCase())) {
+				imageFileByEmbed.set(page.relPath + "::" + cleanTarget, dest);
 				orderedImageVaultPaths.push(dest.path);
 			}
 		}
@@ -99,13 +103,16 @@ export async function exportFolder(app: App, folder: TFolder, settings: PluginSe
 		const blocks = parsedByPath.get(page.relPath) ?? [];
 		const ctx: ResolveContext = {
 			resolveWikilink: (target) => {
-				const dest = app.metadataCache.getFirstLinkpathDest(target, folder.path + "/" + page.relPath);
+				const cleanTarget = target.split(/[#^]/)[0];
+				const dest = app.metadataCache.getFirstLinkpathDest(cleanTarget, pathPrefix + page.relPath);
 				if (!dest) return null;
+				if (!dest.path.startsWith(pathPrefix)) return null;
 				const destRelPath = relPathOf(dest);
 				return indexed.pageKeyByPath.get(destRelPath) ?? null;
 			},
 			resolveImage: (embedTarget) => {
-				const dest = imageFileByEmbed.get(page.relPath + "::" + embedTarget);
+				const cleanTarget = embedTarget.split("|")[0];
+				const dest = imageFileByEmbed.get(page.relPath + "::" + cleanTarget);
 				if (!dest) return null;
 				return assetPathByVaultPath.get(dest.path) ?? null;
 			},
@@ -129,11 +136,11 @@ export async function exportFolder(app: App, folder: TFolder, settings: PluginSe
 
 	// 6. Build XML, zip, and write the module file.
 	const dbXml = buildDbXml(indexed, pagesContent);
-	const definitionXml = buildDefinitionXml(folder.name);
+	const definitionXml = buildDefinitionXml(moduleName);
 	const zipBytes = await buildModuleZip({ definitionXml, dbXml, images });
 
 	await fs.mkdir(settings.modulesPath, { recursive: true });
-	await fs.writeFile(path.join(settings.modulesPath, `${folder.name}.mod`), zipBytes);
+	await fs.writeFile(path.join(settings.modulesPath, `${moduleName}.mod`), zipBytes);
 
 	return {
 		pagesExported: indexed.pagesInOrder.length,

@@ -8,7 +8,11 @@ export interface PageContent {
 }
 
 function escapeXmlText(s: string): string {
-	return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+	return s
+		.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "")
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 }
 
 function blockToXml(block: ResolvedBlock, order: number): string {
@@ -18,7 +22,7 @@ function blockToXml(block: ResolvedBlock, order: number): string {
 	}
 	if (block.kind === "image") {
 		const fileName = block.assetPath.split("/").pop() ?? block.assetPath;
-		return `<${tag}><blocktype type="string">image</blocktype><order type="number">${order}</order><image type="image"><layers><layer><name>${escapeXmlText(fileName)}</name><id>0</id><parentid>-1</parentid><type>image</type><bitmap>${escapeXmlText(block.assetPath)}</bitmap></layer></layers></image></${tag}>`;
+		return `<${tag}><blocktype type="string">image</blocktype><order type="number">${order}</order><scale type="number">60</scale><image type="image"><layers><layer><name>${escapeXmlText(fileName)}</name><id>0</id><parentid>-1</parentid><type>image</type><bitmap>${escapeXmlText(block.assetPath)}</bitmap></layer></layers></image></${tag}>`;
 	}
 	return `<${tag}><blocktype type="string">singletext</blocktype><order type="number">${order}</order><text type="formattedtext">${block.xml}</text></${tag}>`;
 }

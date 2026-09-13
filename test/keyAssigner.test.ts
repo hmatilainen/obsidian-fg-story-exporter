@@ -67,4 +67,9 @@ describe("assignImageKeys", () => {
 		expect(map.size).toBe(1);
 		expect(map.get("/vault/map.png")).toBe("images/img-00001.png");
 	});
+
+	it("derives the extension from the basename only, ignoring dots in directory segments", () => {
+		const map = assignImageKeys(["a.b/image"]);
+		expect(map.get("a.b/image")).toBe("images/img-00001");
+	});
 });

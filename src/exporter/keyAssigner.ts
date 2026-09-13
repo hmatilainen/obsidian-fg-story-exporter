@@ -86,7 +86,8 @@ export function assignImageKeys(orderedImagePaths: string[]): Map<string, string
 	for (const path of orderedImagePaths) {
 		if (result.has(path)) continue;
 		counter += 1;
-		const ext = path.includes(".") ? path.slice(path.lastIndexOf(".")) : "";
+		const base = path.split("/").pop() ?? path;
+		const ext = base.includes(".") ? base.slice(base.lastIndexOf(".")) : "";
 		result.set(path, `images/img-${String(counter).padStart(5, "0")}${ext}`);
 	}
 	return result;
