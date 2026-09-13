@@ -1,5 +1,6 @@
 import { Plugin, TFolder, Notice } from "obsidian";
 import { DEFAULT_SETTINGS, FgStoryExporterSettingTab, type PluginSettings } from "./settings";
+import { exportFolder } from "./exporter/exportOrchestrator";
 
 export default class FgStoryExporterPlugin extends Plugin {
 	settings: PluginSettings = DEFAULT_SETTINGS;
@@ -15,13 +16,23 @@ export default class FgStoryExporterPlugin extends Plugin {
 					item
 						.setTitle("Export to Fantasy Grounds")
 						.setIcon("upload")
-						.onClick(() => {
+						.onClick(async () => {
 							if (!this.settings.modulesPath) {
 								new Notice("Set the Fantasy Grounds modules folder in this plugin's settings first.");
 								return;
 							}
-							// Replaced with the real export call in Task 11.
-							new Notice(`Would export: ${file.path}`);
+							new Notice(`Exporting "${file.name}"…`);
+							try {
+								const summary = await exportFolder(this.app, file, this.settings);
+								const parts = [`${summary.pagesExported} page(s)`, `${summary.imagesPackaged} image(s)`];
+								if (summary.linksDegraded > 0) parts.push(`${summary.linksDegraded} link(s) not resolved`);
+								if (summary.imagesSkipped > 0) parts.push(`${summary.imagesSkipped} image(s) skipped`);
+								if (summary.emptyNotesSkipped > 0) parts.push(`${summary.emptyNotesSkipped} empty note(s) skipped`);
+								new Notice(`Exported "${file.name}.mod": ${parts.join(", ")}.`);
+							} catch (err) {
+								console.error("FG Story Exporter: export failed", err);
+								new Notice(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
+							}
 						}),
 				);
 			}),
