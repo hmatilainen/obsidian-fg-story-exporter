@@ -283,14 +283,18 @@ describe("buildBookTree", () => {
 		expect(tree.chapters[0].subchapters[0].pages[0].relPath).toBe("npcs/tavern/regulars/barkeep.md");
 	});
 
-	it("sorts chapters, subchapters, and pages alphabetically, case-insensitively", () => {
-		const tree = buildBookTree("MyStory", [
-			"zeta/a.md",
-			"Alpha/b.md",
-			"alpha/a.md",
-		]);
-		expect(tree.chapters.map((c) => c.name)).toEqual(["Alpha", "zeta"]);
-		expect(tree.chapters[0].subchapters.map((s) => s.name)).toEqual(["Alpha", "alpha"]);
+	it("sorts chapters alphabetically, case-insensitively", () => {
+		const tree = buildBookTree("MyStory", ["zeta/a.md", "Beta/b.md", "alpha/a.md"]);
+		// Distinct folder names by exact string identity (a case-sensitive
+		// filesystem can genuinely have "Alpha" and "alpha" as different
+		// folders) — only the SORT is case-insensitive, folders are never
+		// merged by casing.
+		expect(tree.chapters.map((c) => c.name)).toEqual(["alpha", "Beta", "zeta"]);
+	});
+
+	it("sorts pages within a subchapter alphabetically, case-insensitively", () => {
+		const tree = buildBookTree("MyStory", ["folder/Zebra.md", "folder/apple.md"]);
+		expect(tree.chapters[0].subchapters[0].pages.map((p) => p.title)).toEqual(["apple", "Zebra"]);
 	});
 
 	it("strips the .md extension from the title but keeps the rest of the filename", () => {
@@ -401,7 +405,7 @@ export function buildBookTree(rootName: string, relPaths: string[]): BookTree {
 npm test -- bookTree
 ```
 
-Expected: all 6 tests pass.
+Expected: all 7 tests pass.
 
 - [ ] **Step 5: Commit**
 
@@ -1933,7 +1937,7 @@ npm run build
 npm test
 ```
 
-Expected: builds cleanly; all unit tests (36 across Tasks 2–8) pass.
+Expected: builds cleanly; every unit test from Tasks 2–8 passes (check the total Vitest reports — don't hardcode an expected count here, it drifts as tests are added/removed during those tasks).
 
 - [ ] **Step 4: Commit and tag**
 
